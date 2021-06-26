@@ -1,48 +1,46 @@
 function updateMap(map){
+    
     fetch("https://www.trackcorona.live/api/countries")
     .then(response=> response.json())
     .then(resp => {
         // console.log(resp.data);
         resp.data.forEach(element => {
-            lat = element.latitude;
-            lon = element.longitude;
-            conf = element.confirmed; 
+            let lat = element.latitude;
+            let lon = element.longitude;
+            let confirm = element.confirmed; 
+            let loc = element.location;
+            let dead = element.dead;
+            let recovered = element.recovered;
 
-            var marker = new mapboxgl.Marker({
+            let text = '<h5>'+loc+'</h5><br>'+
+            'Confirmed: <strong class="text-warning">'+confirm+'</strong><br/>'+
+            'Recovered: <strong class="text-success">'+recovered+'</strong><br/>'+
+            'Dead: <strong class="text-danger">'+dead+'</strong>'
+            ;
+
+
+            let popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+               text
+                );
+
+                let el = document.createElement('div');
+            el.id = 'marker';
+
+            let marker = new mapboxgl.Marker({
+                color: "coral",
+                scale:0.5,
               draggable: false
               })
               .setLngLat([lon,lat])
+              .setPopup(popup)
               .addTo(map);
+                 
+              const markerDiv = marker.getElement();
 
-              var popup = new mapboxgl.Popup({
-                closeButton: false,
-                closeOnClick: false
-                });
-                
-                map.on('mouseenter', 'places', function (e) {
-                    // Change the cursor style as a UI indicator.
-                    map.getCanvas().style.cursor = 'pointer';
-                     
-                    var coordinates = e.features[0].geometry.coordinates.slice();
-                    var description = e.features[0].properties.description;
-                     
-                    // Ensure that if the map is zoomed out such that multiple
-                    // copies of the feature are visible, the popup appears
-                    // over the copy being pointed to.
-                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-                    }
-                     
-                    // Populate the popup and set its coordinates
-                    // based on the feature found.
-                    popup.setLngLat(coordinates).setHTML(description).addTo(map);
-                    });
-                     
-                    map.on('mouseleave', 'places', function () {
-                    map.getCanvas().style.cursor = '';
-                    popup.remove();
-                    });
+              markerDiv.addEventListener('mouseenter', () => marker.togglePopup());
+              markerDiv.addEventListener('mouseleave', () => marker.togglePopup());
+    
         });
-    })
+    });      
 }
 
